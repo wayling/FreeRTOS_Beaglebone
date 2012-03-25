@@ -1,0 +1,15 @@
+#
+# Makefile fragment for the JOS kernel.
+# This is NOT a complete makefile;
+# you must run GNU make in the top-level directory
+# where the GNUmakefile is located.
+#
+
+OBJDIRS += driver
+
+BOOT_OBJS := $(OBJDIR)/driver/comport.o $(OBJDIR)/driver/ns16550.o
+
+$(OBJDIR)/boot/%.o: boot/%.c
+	@echo + cc -Os $<
+	@mkdir -p $(@D)
+	$(V)$(CC) -nostdinc $(KERN_CFLAGS) -Os -c -o $@ $<

@@ -1,0 +1,60 @@
+#
+# Makefile fragment for JOS kernel.
+# This is NOT a complete makefile;
+# you must run GNU make in the top-level directory
+# where the GNUmakefile is located.
+#
+
+OBJDIRS += kernel
+
+KERN_LDFLAGS := $(LDFLAGS) -T kernel/omap3-ram.ld -nostdlib
+
+# entry.S must be first, so that it's the first code in the text segment!!!
+#
+# We also snatch the use of a couple handy source files
+# from the lib directory, to avoid gratuitous code duplication.
+KERN_SRCFILES :=	kernel/tasks.c \
+                    kernel/main.c
+
+# Only build files if they exist.
+KERN_SRCFILES := $(wildcard $(KERN_SRCFILES))
+
+KERN_BINFILES :=
+
+KERN_OBJFILES := $(patsubst %.c, $(OBJDIR)/%.o, $(KERN_SRCFILES))
+KERN_OBJFILES := $(patsubst %.S, $(OBJDIR)/%.o, $(KERN_OBJFILES))
+KERN_OBJFILES := $(patsubst $(OBJDIR)/boot/%, $(OBJDIR)/kernel/%, $(KERN_OBJFILES))
+KERN_OBJFILES := $(patsubst $(OBJDIR)/driver/%, $(OBJDIR)/kernel/%, $(KERN_OBJFILES))
+KERN_OBJFILES := $(patsubst $(OBJDIR)/lib/%, $(OBJDIR)/kernel/%, $(KERN_OBJFILES))
+KERN_OBJFILES := $(patsubst $(OBJDIR)/user/%, $(OBJDIR)/kernel/%, $(KERN_OBJFILES))
+
+#KERN_BINFILES := $(patsubst %, $(OBJDIR)/%, $(KERN_BINFILES))
+
+# How to build kernel object files
+$(OBJDIR)/kernel/%.o: kernel/%.c
+	@echo + cc $<
+	@mkdir -p $(@D)
+	$(V)$(CC) -nostdinc $(KERN_CFLAGS) -c -o $@ $<
+
+$(OBJDIR)/kernel/%.o: kernel/%.S
+	@echo + as $<
+	@mkdir -p $(@D)
+	$(V)$(CC) -nostdinc $(KERN_CFLAGS) -c -o $@ $<
+
+$(OBJDIR)/kernel/%.o: lib/%.c
+	@echo + cc $<
+	@mkdir -p $(@D)
+	$(V)$(CC) -nostdinc $(KERN_CFLAGS) -c -o $@ $<
+
+# How to build the kernel itself
+$(OBJDIR)/kernel/kernel: $(KERN_OBJFILES) $(KERN_BINFILES) kernel/omap3-ram.ld
+	@echo + ld $@
+	$(V)$(LD) -o $@ $(KERN_LDFLAGS) $(KERN_OBJFILES) 
+	$(V)$(OBJDUMP) -S $@ > $@.asm
+	$(V)$(NM) -n $@ > $@.sym
+
+$(OBJDIR)/kernel/kernel.bin : $(OBJDIR)/kernel/kernel
+#    $(V)$(OBJCOPY) kernel -O binary $(OBJDIR)/kernel/kernel.bin
+
+all: $(OBJDIR)/kernel/kernel.bin
+

@@ -1,0 +1,11 @@
+OBJDIRS += lib
+
+LIB_SRCFILES :=		user/SampleTasks.c
+
+LIB_OBJFILES := $(patsubst user/%.c, $(OBJDIR)/user/%.o, $(LIB_SRCFILES))
+
+$(OBJDIR)/user/%.o: user/%.c
+	@echo + cc[USER] $<
+	@mkdir -p $(@D)
+	$(V)$(CC) -nostdinc $(USER_CFLAGS) -c -o $@ $<
+
