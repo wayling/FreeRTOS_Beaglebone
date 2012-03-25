@@ -1,0 +1,4 @@
+What is the FreeRTOS?
+    It's a Read Time Operating system.I want study ARMv7 so porting FreeRTOS to Beaglebone.
+This code originated from "FreeRTOS Community Contributions/Texas Instruments - FreeRTOS port for TI BeagleBoard/OMAP3530"
+
